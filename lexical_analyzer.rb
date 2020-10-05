@@ -460,8 +460,8 @@ class LexicalAnalyzer
 
 			if(@current_state == 's0')
 				description = "unexpected '#{current_character}' starting the lexeme."
-			elsif(@current_state == 's2' or @current_state == 's5')
-				description = "unexpected '#{current_character}'' instead of digit."
+			elsif(@current_state == 's2' or @current_state == 's5' or @current_state == 's6')
+				description = "unexpected '#{current_character}' instead of digit."
 			elsif(@current_state == 's1' || @current_state == 's3')
 				description = "'#{@current_character}' is not valid for a numeral."
 			elsif(@current_state == 's4')
