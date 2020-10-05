@@ -39,19 +39,10 @@ end
 def main
 	lex = LexicalAnalyzer.new(source_code_path)
 
-	# lex.print_info()
+	lex.analyse()
 
-	loop do
-		if lex.get_current_character == nil
-			break
-		end
-
-		lex.process()
-		# lex.print_info()
-	end
-
-	lex.print_token_array()
-	lex.print_symbol_table()
+	# lex.print_token_array()
+	# lex.print_symbol_table()
 end
 
 main()

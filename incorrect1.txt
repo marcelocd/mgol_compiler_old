@@ -1,0 +1,4 @@
+inicio varinicio varfim int real lit 
+leia escreva se entao fimse fim
+; / + -<>=>==10000e+1111111..
+compiladores <-> c_000teste;
