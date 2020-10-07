@@ -92,9 +92,9 @@ class LexicalAnalyzer
 				# Garante que os comentários não sejam
 				# adicionados ao array de tokens.
 				if(token != 'Comentário')
-					@token_array << token
+					# @token_array << token
 
-					# puts "#{@buffer}: #{token}"
+					puts "#{@buffer}: #{token}"
 				end
 				# -----------------------------------------
 
@@ -111,11 +111,11 @@ class LexicalAnalyzer
 		end
 
 		def analyse
-			# print_info()
+			print_info()
 
 			loop do
 				process_next_character()
-				# print_info()
+				print_info()
 
 				# s12: EOF
 				if(@current_state == 's12')
@@ -292,7 +292,7 @@ class LexicalAnalyzer
 			if(@current_state == 's0')
 				@buffer = ''
 			else
-				if(@source_code[@current_index - 1] != nil)
+				if(@source_code[@current_index] != nil)
 					@buffer += @source_code[@current_index - 1]
 				end
 			end
@@ -465,7 +465,7 @@ class LexicalAnalyzer
 			elsif(@current_state == 's1' || @current_state == 's3')
 				description = "'#{@current_character}' is not valid for a numeral."
 			elsif(@current_state == 's4')
-				description = "unexpected '#{current_character}'' instead of digit or sign (+,-)."
+				description = "unexpected '#{current_character}' instead of digit or sign (+,-)."
 			end
 
 			return "ERROR (line #{@current_line}, column #{@current_column}): #{description}"

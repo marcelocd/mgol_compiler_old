@@ -27,10 +27,18 @@ end
 def main
 	lex = LexicalAnalyzer.new(source_code_path)
 
-	lex.analyse()
+	lex.print_info()
 
-	# lex.print_token_array()
-	# lex.print_symbol_table()
+	for i in 1..12
+		lex.process_next_character()
+
+		lex.print_info()
+	end
+
+	# lex.analyse()
+
+	lex.print_token_array()
+	lex.print_symbol_table()
 end
 
 main()
