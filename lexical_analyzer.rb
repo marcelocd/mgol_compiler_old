@@ -92,7 +92,7 @@ class LexicalAnalyzer
 				# Garante que os comentários não sejam
 				# adicionados ao array de tokens.
 				if(token != 'Comentário')
-					# @token_array << token
+					@token_array << token
 
 					puts "#{@buffer}: #{token}"
 				end
@@ -119,6 +119,7 @@ class LexicalAnalyzer
 
 				# s12: EOF
 				if(@current_state == 's12')
+					@token_array << 'EOF'
 					break
 				end
 			end
