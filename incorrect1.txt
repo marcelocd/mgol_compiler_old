@@ -1,4 +1,4 @@
+1es2a1 marcelo
 inicio varinicio varfim int real lit 
 leia escreva se entao fimse fim
-; / + -<>=>==10000es111111a1
-compiladores <-> c_000teste;
+compiladores <-> c_0teste";

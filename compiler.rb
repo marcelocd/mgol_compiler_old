@@ -30,15 +30,16 @@ def main
 	# lex.print_info()
 
 	# for i in 1..50
-	# 	lex.process_next_character()
+	# 	lex.process_current_character()
 
 	# 	lex.print_info()
 	# end
 
 	lex.analyse()
 
-	lex.print_token_array()
-	lex.print_symbol_table()
+	lex.print_errors()
+	# lex.print_token_array()
+	# lex.print_symbol_table()
 end
 
 main()
