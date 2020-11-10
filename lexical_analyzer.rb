@@ -72,6 +72,12 @@ class LexicalAnalyzer
 			if((@current_state == INITIAL_STATE) && (@current_character == nil))
 				@current_state = EOF_STATE
 
+				@token_array << {
+					'token'  => 'EOF',
+					'type'   => '-',
+					'lexeme' => ''
+				}
+				
 				return
 			end
 
@@ -85,16 +91,13 @@ class LexicalAnalyzer
 				token = get_token_from_state(@current_state)
 
 				if(token['token'] != 'Comentário')
-					print_token_array()
 					@token_array << token
-					print_token_array()
-					puts '...'
 				end
 
 				# Adiciona os identificadores à tabela de símbolos.
 				if(@current_state == ID_STATE)
 					if(@symbol_table[@buffer] == nil)
-						@symbol_table[@buffer] = {'token' => token}
+						@symbol_table[@buffer] = {'token' => token['token']}
 					end
 
 					# puts "#{@buffer}: #{@symbol_table[@buffer]['token']}"
@@ -102,12 +105,6 @@ class LexicalAnalyzer
 					# puts "#{@buffer}: #{token}"
 				end
 				# -----------------------------------------
-
-				if(next_state == EOF_STATE)
-					@current_state = EOF_STATE
-
-					return
-				end
 
 				reset_dfa()
 
@@ -282,7 +279,8 @@ class LexicalAnalyzer
 			# Caso contrário, o próprio estado do
 			# DFA determina o token reconhecido
 			elsif(is_final_state(state))
-				aux = @state_token_table[state]
+				aux['token'] = @state_token_table[state]['token']
+				aux['type']  = @state_token_table[state]['type']
 			end
 
 			aux['lexeme'] = @buffer
@@ -311,12 +309,6 @@ class LexicalAnalyzer
 			# Esta função atualiza o estado do DFA,
 			# e das demais informações, como linha,
 			# coluna, buffer, caracter atual...
-
-			if((@current_state == INITIAL_STATE) && @current_character == nil)
-				@current_state = EOF_STATE
-
-				return
-			end
 
 			cc = @current_character
 
@@ -394,7 +386,7 @@ class LexicalAnalyzer
 				's24' => {'token' => 'FC_P',       'type' => '-'},
 				's25' => {'token' => 'PT_V',       'type' => '-'},
 				's26' => {'token' => 'Erro',       'type' => '-'},
-				's27' => {'token' => 'RCB',        'type' => '-'},
+				's27' => {'token' => 'RCB',        'type' => '-'}
 			}
 		end
 
@@ -517,7 +509,11 @@ class LexicalAnalyzer
 			if(@current_character == nil)
 				# @current_column -= 1
 				description = "unfinished lexeme '#{@buffer}'."
-			elsif(@current_state == INITIAL_STATE)
+
+				return "ERROR (line #{@current_line}, column #{@current_column - 1}): #{description}"
+			end
+			
+			if(@current_state == INITIAL_STATE)
 				description = "unexpected '#{current_character}' starting the lexeme."
 			elsif(@current_state == 's2' or @current_state == 's5' or @current_state == 's6')
 				description = "unexpected '#{current_character}' instead of digit."
