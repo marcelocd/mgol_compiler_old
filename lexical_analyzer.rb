@@ -1,5 +1,5 @@
 # Authors: Frank Douglas & Marcelo Dias
-# Last modified: 10/05/2020
+# Last modified: 11/09/2020
 
 require "byebug"
 
@@ -512,7 +512,7 @@ class LexicalAnalyzer
 
 				return "ERROR (line #{@current_line}, column #{@current_column - 1}): #{description}"
 			end
-			
+
 			if(@current_state == INITIAL_STATE)
 				description = "unexpected '#{current_character}' starting the lexeme."
 			elsif(@current_state == 's2' or @current_state == 's5' or @current_state == 's6')
