@@ -3,6 +3,8 @@
 
 # REQUIREMENTS -----------------------------------
 load    "lexical_analyzer.rb"
+load    "syntactic_analyzer.rb"
+
 require "byebug"
 
 # ------------------------------------------------
@@ -30,9 +32,13 @@ def main
 	lex.analyse()
 
 	lex.print_errors()
-	
-	lex.print_token_array()
+
+	# lex.print_token_array()
 	# lex.print_symbol_table()
+
+	sa = SyntacticAnalyzer.new(lex.get_token_array())
+
+	sa.analyse()
 end
 
 main()
