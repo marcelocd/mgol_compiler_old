@@ -31,7 +31,7 @@ def main
 
 	lex.print_errors()
 	
-	# lex.print_token_array()
+	lex.print_token_array()
 	# lex.print_symbol_table()
 end
 
