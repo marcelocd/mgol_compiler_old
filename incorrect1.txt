@@ -1,4 +1,4 @@
-1es2a1 hello
+.1es2a1 hello
 inicio varinicio varfim int real lit 
 leia escreva se entao fimse fim
 compiladores <-> c_0teste";
