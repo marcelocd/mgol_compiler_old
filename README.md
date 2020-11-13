@@ -1,4 +1,4 @@
-# t1_analisador_lexico
+# mgol_compiler
 Trabalho 1 de Compiladores (2020.1): Analisador Léxico
 
 How to run the code on Ubuntu
