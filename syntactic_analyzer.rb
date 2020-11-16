@@ -658,6 +658,8 @@ class SyntacticAnalyzer
 
 		@current_index += 1
 
+		# Procura o índice do próximo delimitador (PT_V)
+		# faz com que o @current_index seja o índice que vem depois
 		for i in @current_index..(token_array_length - 1)
 			if @token_array[@current_index]['token'] == 'PT_V'
 				@current_index += 1
