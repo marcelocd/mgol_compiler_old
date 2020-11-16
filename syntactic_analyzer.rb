@@ -4,12 +4,13 @@
 require "byebug"
 
 class SyntacticAnalyzer
-	attr_accessor :current_state, :previous_state, :current_index, :syntactic_table, :errors
+	attr_accessor :current_state, :previous_state, :current_index, :syntactic_table, :first_follow_table, :errors
 
 	@current_state
 	@previous_state
 	@current_index
 	@syntactic_table
+	@first_follow_table
 	@errors
 
 	INITIAL_STATE = 's0'
@@ -17,40 +18,38 @@ class SyntacticAnalyzer
 	# FUNÇÕES PÚBLICAS ----------------------------
 	# CONSTRUTOR ----------------------------------
 	def initialize token_array
-		@current_state   = INITIAL_STATE
-		@previous_state  = 'nil'
-		@token_array     = token_array << '$'
-		@current_index   = 0
-		@ip              = nil
-		@grammar         = initialize_grammar()
-		@syntactic_table = initialize_syntactic_table()
-		@errors          = []
+		@current_state      = INITIAL_STATE
+		@previous_state     = 'nil'
+		@token_array        = token_array << '$'
+		@current_index      = 0
+		@ip                 = nil
+		@grammar            = initialize_grammar()
+		@syntactic_table    = initialize_syntactic_table()
+		@first_follow_table = initialize_first_follow_table()
+		@errors             = []
 	end
 
 	# ---------------------------------------------
 
 	def analyse
-		stack = ['s0']
+		stack = ['0']
 
 		ip = @token_array[@current_index]
 
-		int = 0
-
 		loop do
-			int += 1
-			# puts '---------'
-			# puts stack
-			# puts '---------'
+			puts '---------'
+			puts stack
+			puts '---------'
 
 			a  = ip['token']
 			s  = stack.last
 
 			sl = action(s, a)
 
-			if(sl != nil)
-				if(sl.match(/s\d+/))
+			if(action(s, a) != nil)
+				if(action(s, a).match(/s/))
 					stack.push(a)
-					stack.push(sl)
+					stack.push(sl.match(/\d+/)[0])
 
 					@current_index += 1
 
@@ -70,17 +69,18 @@ class SyntacticAnalyzer
 					sl = stack.last
 
 					if(goto(sl, alpha) == nil)
-						byebug
-						puts 'hello'
+						treat_error()
+
+						next
 					end
 
 					stack.push(alpha)
-					stack.push("s#{goto(sl, alpha)}")
+					stack.push("#{goto(sl, alpha)}")
 
 					puts "#{alpha} => #{beta}"
 				elsif(action(s, a) == 'acc')
 					return
-				else	
+				else
 					error()
 				end
 			else
@@ -111,11 +111,11 @@ class SyntacticAnalyzer
 			},
 			'5' => {
 				'left'  => 'LV',
-				'right' => 'varfim'
+				'right' => 'varfim PT_V'
 			},
 			'6' => {
 				'left'  => 'D',
-				'right' => 'id TIPO'
+				'right' => 'id TIPO PT_V'
 			},
 			'7' => {
 				'left'  => 'TIPO',
@@ -143,7 +143,7 @@ class SyntacticAnalyzer
 			},
 			'13' => {
 				'left'  => 'ARG',
-				'right' => 'literal'
+				'right' => 'lit'
 			},
 			'14' => {
 				'left'  => 'ARG',
@@ -218,18 +218,18 @@ class SyntacticAnalyzer
 
 	def initialize_syntactic_table
 		return {
-			's0' => {
+			'0' => {
 				'P' => '1',
 				'inicio' => 's2'
 			},
-			's1' => {
+			'1' => {
 				'$' => 'acc'
 			},
-			's2' => {
+			'2' => {
 				'varinicio' => 's4',
 				'V' => '3'
 			},
-			's3' => {
+			'3' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'escreva' => 's11',
@@ -241,16 +241,16 @@ class SyntacticAnalyzer
 				'COND' => '8',
 				'CABEÇALHO' => '13'
 			},
-			's4' => {
+			'4' => {
 				'varfim;' => 's17',
 				'id' => 's18',
 				'LV' => '15',
 				'D' => '16'
 			},
-			's5' => {
+			'5' => {
 				'$' => 'r1'
 			},
-			's6' => {
+			'6' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'ecreva' => 's11',
@@ -262,7 +262,7 @@ class SyntacticAnalyzer
 				'COND' => '8',
 				'CABEÇALHO' => '13'
 			},
-			's7' => {
+			'7' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'ecreva' => 's11',
@@ -274,7 +274,7 @@ class SyntacticAnalyzer
 				'COND' => '8',
 				'CABEÇALHO' => '13'
 			},
-			's8' => {
+			'8' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'ecreva' => 's11',
@@ -286,22 +286,22 @@ class SyntacticAnalyzer
 				'COND' => '8',
 				'CABEÇALHO' => '13'
 			},
-			's9' => {
+			'9' => {
 				'$' => 'r29'
 			},
-			's10' => {
+			'10' => {
 				'id' => 's22'
 			},
-			's11' => {
+			'11' => {
 				'id' => 's26',
 				'literal' => 's24',
 				'num' => 's25',
 				'ARG' => '23'
 			},
-			's12' => {
+			'12' => {
 				'rcb' => 's27'
 			},
-			's13' => {
+			'13' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'escreva' => 's11',
@@ -313,62 +313,62 @@ class SyntacticAnalyzer
 				'CABEÇALHO' => '13',
 				'CORPO' => '28'
 			},
-			's14' => {
+			'14' => {
 				'AB_P' => 's33'
 			},
-			's15' => {
+			'15' => {
 				'id' => 'r2',
 				'leia' => 'r2',
 				'escreva' => 'r2',
 				'se' => 'r2',
 				'fim' => 'r2'
 			},
-			's16' => {
+			'16' => {
 				'varfim' => 's17',
 				'id' => 's18',
 				'LV' => '34',
 				'D' => '16'
 			},
-			's17' => {
+			'17' => {
 				'PT_V' => 's35'
 			},
-			's18' => {
+			'18' => {
 				'int' => 's37',
 				'real' => 's38',
 				'lit' => 's39',
 				'TIPO' => '36'
 			},
-			's19' => {
+			'19' => {
 				'$' => 'r9'
 			},
-			's20' => {
+			'20' => {
 				'$' => 'r15'
 			},
-			's21' => {
+			'21' => {
 				'$' => 'r21'
 			},
-			's22' => {
+			'22' => {
 				'PT_V' => 's40'
 			},
-			's23' => {
+			'23' => {
 				'PT_V' => 's41'
 			},
-			's24' => {
+			'24' => {
 				'PT_V' => 'r12'
 			},
-			's25' => {
+			'25' => {
 				'PT_V' => 'r13'
 			},
-			's26' => {
+			'26' => {
 				'PT_V' => 'r14'
 			},
-			's27' => {
+			'27' => {
 				'id' => 's44',
 				'num' => 's45',
 				'LD' => '42',
 				'OPRD' => '43'
 			},
-			's28' => {
+			'28' => {
 				'id' => 'r22',
 				'leia' => 'r22',
 				'escreva' => 'r22',
@@ -376,7 +376,7 @@ class SyntacticAnalyzer
 				'fimse' => 'r22',
 				'fim' => 'r22'
 			},
-			's29' => {
+			'29' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'escreva' => 's11',
@@ -388,7 +388,7 @@ class SyntacticAnalyzer
 				'CABEÇALHO' => '13',
 				'CORPO' => '46'
 			},
-			's30' => {
+			'30' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'escreva' => 's11',
@@ -400,7 +400,7 @@ class SyntacticAnalyzer
 				'CABEÇALHO' => '13',
 				'CORPO' => '47'
 			},
-			's31' => {
+			'31' => {
 				'id' => 's12',
 				'leia' => 's10',
 				'escreva' => 's11',
@@ -412,7 +412,7 @@ class SyntacticAnalyzer
 				'CABEÇALHO' => '13',
 				'CORPO' => '48'
 			},
-			's32' => {
+			'32' => {
 				'id' => 'r28',
 				'leia' => 'r28',
 				'escreva' => 'r28',
@@ -420,39 +420,39 @@ class SyntacticAnalyzer
 				'fimse' => 'r28',
 				'fim' => 'r28'
 			},
-			's33' => {
+			'33' => {
 				'id' => 's44',
 				'num' => 's45',
 				'OPRD' => '50',
 				'EXP_R' => '49'
 			},
-			's34' => {
+			'34' => {
 				'id' => 'r3',
 				'leia' => 'r3',
 				'escreva' => 'r3',
 				'se' => 'r3',
 				'fim' => 'r3'
 			},
-			's35' => {
+			'35' => {
 				'id' => 'r4',
 				'leia' => 'r4',
 				'escreva' => 'r4',
 				'se' => 'r4',
 				'fim' => 'r4'
 			},
-			's36' => {
+			'36' => {
 				'PT_V' => 's51'
 			},
-			's37' => {
+			'37' => {
 				'PT_V' => 'r6'
 			},
-			's38' => {
+			'38' => {
 				'PT_V' => 'r7'
 			},
-			's39' => {
+			'39' => {
 				'PT_V' => 'r8'
 			},
-			's40' => {
+			'40' => {
 				'id' => 'r10',
 				'leia' => 'r10',
 				'escreva' => 'r10',
@@ -460,7 +460,7 @@ class SyntacticAnalyzer
 				'fimse' => 'r10',
 				'fim' => 'r10'
 			},
-			's41' => {
+			'41' => {
 				'id' => 'r11',
 				'leia' => 'r11',
 				'escreva' => 'r11',
@@ -468,26 +468,26 @@ class SyntacticAnalyzer
 				'fimse' => 'r11',
 				'fim' => 'r11'
 			},
-			's42' => {
+			'42' => {
 				'PT_V' => 's52'
 			},
-			's43' => {
+			'43' => {
 				'PT_V' => 'r18',
 				'opm' => 's53'
 			},
-			's44' => {
+			'44' => {
 				'PT_V' => 'r19',
 				'opm' => 'r19',
 				'FC_P' => 'r19',
 				'opr' => 'r19'
 			},
-			's45' => {
+			'45' => {
 				'PT_V' => 'r20',
 				'opm' => 'r20',
 				'FC_P' => 'r20',
 				'opr' => 'r20'
 			},
-			's46' => {
+			'46' => {
 				'id' => 'r25',
 				'leia' => 'r25',
 				'escreva' => 'r25',
@@ -495,7 +495,7 @@ class SyntacticAnalyzer
 				'fimse' => 'r25',
 				'fim' => 'r25'
 			},
-			's47' => {
+			'47' => {
 				'id' => 'r26',
 				'leia' => 'r26',
 				'escreva' => 'r26',
@@ -503,7 +503,7 @@ class SyntacticAnalyzer
 				'fimse' => 'r26',
 				'fim' => 'r26'
 			},
-			's48' => {
+			'48' => {
 				'id' => 'r27',
 				'leia' => 'r27',
 				'escreva' => 'r27',
@@ -511,17 +511,17 @@ class SyntacticAnalyzer
 				'fimse' => 'r27',
 				'fim' => 'r27'
 			},
-			's49' => {
+			'49' => {
 				'FC_P' => 's54'
 			},
-			's50' => {
+			'50' => {
 				'opr' => 's55'
 			},
-			's51' => {
+			'51' => {
 				'varfim' => 'r5',
 				'id' => 'r5'
 			},
-			's52' => {
+			'52' => {
 				'id' => 'r16',
 				'leia' => 'r16',
 				'escreva' => 'r16',
@@ -529,31 +529,96 @@ class SyntacticAnalyzer
 				'fimse' => 'r16',
 				'fim' => 'r16'
 			},
-			's53' => {
+			'53' => {
 				'id' => 's44',
 				'num' => 's45',
 				'OPRD' => '56'
 			},
-			's54' => {
+			'54' => {
 				'entao' => 's57'
 			},
-			's55' => {
+			'55' => {
 				'id' => 's44',
 				'num' => 's45',
 				'OPRD' => '58'
 			},
-			's56' => {
+			'56' => {
 				'PT_V' => 'r17'
 			},
-			's57' => {
+			'57' => {
 				'id' => 'r23',
 				'leia' => 'r23',
 				'escreva' => 'r23',
 				'se' => 'r23',
 				'fim' => 'r23'
 			},
-			's58' => {
+			'58' => {
 				'FC_P' => 'r24'
+			}
+		}
+	end
+
+	def initialize_first_follow_table
+	  return {
+			'Pl' => {
+				'first' => ['inicio'],
+				'follow' => ['$']
+			},
+			'P' => {
+				'first' => ['inicio'],
+				'follow' => ['$']
+			},
+			'V' => {
+				'first' => ['varinicio'],
+				'follow' => ['fim', 'leia', 'escreva', 'id', 'se']
+			},
+			'LV' => {
+				'first' => ['varfim', 'id'],
+				'follow' => ['fim', 'leia', 'escreva', 'id', 'se']
+			},
+			'D' => {
+				'first' => ['id'],
+				'follow' => ['varfim', 'id']
+			},
+			'TIPO' => {
+				'first' => ['int', 'real', 'lit'],
+				'follow' => ['PT_V']
+			},
+			'A' => {
+				'first' => ['fim', 'leia', 'escreva', 'id', 'se'],
+				'follow' => ['$']
+			},
+			'ES' => {
+				'first' => ['leia', 'escreva'],
+				'follow' => ['fim', 'leia', 'escreva', 'id', 'se', 'fimse']
+			},
+			'ARG' => {
+				'first' => ['lit', 'num', 'id'],
+				'follow' => ['PT_V']
+			},
+			'CMD' => {
+				'first' => ['id'],
+				'follow' => ['fim', 'leia', 'escreva', 'id', 'se', 'fimse']
+			},
+			'LD' => {
+				'first' => ['id', 'num'],
+				'follow' => ['opm', 'PT_V', 'opr', 'FC_P']
+			},
+			'COND' => {
+				'first' => ['se'],
+				'follow' => ['fim', 'leia', 'escreva', 'id', 'se', 'fimse']
+			},
+			'CABEÇALHO' => {
+				'first' => ['se'],
+				'follow' => ['leia', 'escreva', 'id', 'fimse', 'se']
+			},
+			'EXP_R' => {
+				'first' => ['id', 'num'],
+				'follow' => ['FC_P']
+			},
+			'CORPO' => {
+				'first' => ['leia', 'escreva', 'id', 'fimse', 'sim'],
+				'follow' => ['fim', 'leia', 'escreva', 'id', 'se', 'fimse']
 			}
 		}
 	end
@@ -573,7 +638,25 @@ class SyntacticAnalyzer
 
 	# FUNÇÕES DE ERRO -----------------------------
 	def error
-		puts 'ERRO!'
+		puts 'Syntactic error!'
+	end
+
+	def treat_error
+		token_array_length = @token_array.count
+
+		@current_index += 1
+
+		for i in @current_index..(token_array_length - 1)
+			if @token_array[@current_index]['token'] == 'PT_V'
+				@current_index += 1
+
+				error()
+
+				return
+			end
+
+			@current_index += 1
+		end
 	end
 
 	# ---------------------------------------------
