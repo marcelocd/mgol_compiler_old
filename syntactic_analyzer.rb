@@ -37,37 +37,44 @@ class SyntacticAnalyzer
 		ip = @token_array[@current_index]
 
 		loop do
-			puts '---------'
-			puts stack
-			puts '---------'
+			# puts '---------'
+			# puts stack
+			# puts '---------'
 
-			a  = ip['token']
-			s  = stack.last
-
-			sl = action(s, a)
+			s = stack.last
+			a = ip['token']
 
 			if(action(s, a) != nil)
+				# Verifica se ação possui um 's'
 				if(action(s, a).match(/s/))
 					stack.push(a)
-					stack.push(sl.match(/\d+/)[0])
+
+					# Pega o estado da ação
+					sl = action(s, a).match(/\d+/)[0]
+
+					stack.push(sl)
 
 					@current_index += 1
 
 					ip = @token_array[@current_index]
-				elsif(sl.match(/r\d+/))
-					goto_number = sl.match(/\d+/)[0]
+				elsif(action(s, a).match(/r/))
+					# Pega o número da regra da gramática para a redução
+					goto_number = action(s, a).match(/\d+/)[0]
 
 					alpha = @grammar[goto_number]['left']
 					beta  = @grammar[goto_number]['right']
 
+					# Conta o número de símbolos em Beta
 					beta_length = count_symbols(beta)
 
+					# Desempilha 2 * |B| símbolos para fora da pilha
 					for i in 1..(2 * beta_length)
 						stack.pop
 					end
 
 					sl = stack.last
 
+					# Caso não haja ação
 					if(goto(sl, alpha) == nil)
 						treat_error()
 
@@ -75,6 +82,8 @@ class SyntacticAnalyzer
 					end
 
 					stack.push(alpha)
+
+					# Empilha o próximo estado
 					stack.push("#{goto(sl, alpha)}")
 
 					puts "#{alpha} => #{beta}"
