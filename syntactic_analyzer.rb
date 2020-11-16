@@ -44,6 +44,9 @@ class SyntacticAnalyzer
 			s = stack.last
 			a = ip['token']
 
+			# Verifica se existe ação, pois, se nil for retornado
+			# ao invés de uma string, não é possível utilizar o 
+			# método match como na linha 52.
 			if(action(s, a) != nil)
 				# Verifica se ação possui um 's'
 				if(action(s, a).match(/s/))
