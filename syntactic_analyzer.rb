@@ -20,7 +20,7 @@ class SyntacticAnalyzer
 	def initialize token_array
 		@current_state      = INITIAL_STATE
 		@previous_state     = 'nil'
-		@token_array        = token_array << '$'
+		@token_array        = token_array << {'token' => '$'}
 		@current_index      = 0
 		@ip                 = nil
 		@grammar            = initialize_grammar()
@@ -42,60 +42,55 @@ class SyntacticAnalyzer
 			# puts '---------'
 
 			s = stack.last
+			
 			a = ip['token']
 
-			# Verifica se existe ação, pois, se nil for retornado
-			# ao invés de uma string, não é possível utilizar o 
-			# método match como na linha 52.
 			if(action(s, a) != nil)
-				# Verifica se ação possui um 's'
 				if(action(s, a).match(/s/))
 					stack.push(a)
-
-					# Pega o estado da ação
+					
 					sl = action(s, a).match(/\d+/)[0]
-
+					
 					stack.push(sl)
-
+					
 					@current_index += 1
 
 					ip = @token_array[@current_index]
 				elsif(action(s, a).match(/r/))
-					# Pega o número da regra da gramática para a redução
+
 					goto_number = action(s, a).match(/\d+/)[0]
-
+					
 					alpha = @grammar[goto_number]['left']
+					
 					beta  = @grammar[goto_number]['right']
-
-					# Conta o número de símbolos em Beta
+					
 					beta_length = count_symbols(beta)
-
-					# Desempilha 2 * |B| símbolos para fora da pilha
+					
 					for i in 1..(2 * beta_length)
 						stack.pop
-					end
+						end
 
 					sl = stack.last
 
-					# Caso não haja ação
-					if(goto(sl, alpha) == nil)
-						treat_error()
-
-						next
-					end
-
 					stack.push(alpha)
-
-					# Empilha o próximo estado
+					
 					stack.push("#{goto(sl, alpha)}")
-
+					
 					puts "#{alpha} => #{beta}"
 				elsif(action(s, a) == 'acc')
 					return
 				else
-					error()
+					treat_error()
 				end
 			else
+				if a == 'EOF'
+					@current_index += 1
+
+					ip = @token_array[@current_index]
+
+					next
+				end
+
 				error()
 
 				return
@@ -105,123 +100,123 @@ class SyntacticAnalyzer
 
 	def initialize_grammar
 		return {
-			'1' => {
+			'0' => {
 				'left'  => 'Pl',
 				'right' => 'P'
 			},
-			'2' => {
+			'1' => {
 				'left'  => 'P',
 				'right' => 'inicio V A'
 			},
-			'3' => {
+			'2' => {
 				'left'  => 'V',
 				'right' => 'varinicio LV'
 			},
-			'4' => {
+			'3' => {
 				'left'  => 'LV',
 				'right' => 'D LV'
 			},
-			'5' => {
+			'4' => {
 				'left'  => 'LV',
 				'right' => 'varfim PT_V'
 			},
-			'6' => {
+			'5' => {
 				'left'  => 'D',
 				'right' => 'id TIPO PT_V'
 			},
-			'7' => {
+			'6' => {
 				'left'  => 'TIPO',
 				'right' => 'int'
 			},
-			'8' => {
+			'7' => {
 				'left'  => 'TIPO',
 				'right' => 'real'
 			},
-			'9' => {
+			'8' => {
 				'left'  => 'TIPO',
 				'right' => 'lit'
 			},
-			'10' => {
+			'9' => {
 				'left'  => 'A',
 				'right' => 'ES A'
 			},
-			'11' => {
+			'10' => {
 				'left'  => 'ES',
 				'right' => 'leia id PT_V'
 			},
-			'12' => {
+			'11' => {
 				'left'  => 'ES',
 				'right' => 'escreva ARG PT_V'
 			},
-			'13' => {
+			'12' => {
 				'left'  => 'ARG',
 				'right' => 'lit'
 			},
-			'14' => {
+			'13' => {
 				'left'  => 'ARG',
 				'right' => 'num'
 			},
-			'15' => {
+			'14' => {
 				'left'  => 'ARG',
 				'right' => 'id'
 			},
-			'16' => {
+			'15' => {
 				'left'  => 'A',
 				'right' => 'CMD A'
 			},
-			'17' => {
+			'16' => {
 				'left'  => 'CMD',
-				'right' => 'id rcb LD PT_V'
+				'right' => 'id RCB LD PT_V'
+			},
+			'17' => {
+				'left'  => 'LD',
+				'right' => 'OPRD OPM OPRD'
 			},
 			'18' => {
 				'left'  => 'LD',
-				'right' => 'OPRD opm OPRD'
-			},
-			'19' => {
-				'left'  => 'LD',
 				'right' => 'OPRD'
 			},
-			'20' => {
+			'19' => {
 				'left'  => 'OPRD',
 				'right' => 'id'
 			},
-			'21' => {
+			'20' => {
 				'left'  => 'OPRD',
 				'right' => 'num'
 			},
-			'22' => {
+			'21' => {
 				'left'  => 'A',
 				'right' => 'COND A'
 			},
-			'23' => {
+			'22' => {
 				'left'  => 'COND',
 				'right' => 'CABEÇALHO CORPO'
 			},
-			'24' => {
+			'23' => {
 				'left'  => 'CABEÇALHO',
 				'right' => 'se AB_P EXP_R FC_P entao'
 			},
-			'25' => {
+			'24' => {
 				'left'  => 'EXP_R',
-				'right' => 'OPRD opr OPRD'
+				'right' => 'OPRD OPR OPRD'
 			},
-			'26' => {
+			'25' => {
 				'left'  => 'CORPO',
 				'right' => 'ES CORPO'
 			},
-			'27' => {
+			'26' => {
 				'left'  => 'CORPO',
 				'right' => 'CMD CORPO'
 			},
-			'28' => {
+			'27' => {
 				'left'  => 'CORPO',
 				'right' => 'COND CORPO'
 			},
-			'29' => {
+			'28' => {
 				'left'  => 'CORPO',
 				'right' => 'fimse'
 			},
-			'30' => {
+			'29' => {
 				'left'  => 'A',
 				'right' => 'fim'
 			}
@@ -231,8 +226,8 @@ class SyntacticAnalyzer
 	def initialize_syntactic_table
 		return {
 			'0' => {
-				'P' => '1',
-				'inicio' => 's2'
+				'inicio' => 's2',
+				'P' => '1'
 			},
 			'1' => {
 				'$' => 'acc'
@@ -265,7 +260,7 @@ class SyntacticAnalyzer
 			'6' => {
 				'id' => 's12',
 				'leia' => 's10',
-				'ecreva' => 's11',
+				'escreva' => 's11',
 				'se' => 's14',
 				'fim' => 's9',
 				'A' => '19',
@@ -277,10 +272,10 @@ class SyntacticAnalyzer
 			'7' => {
 				'id' => 's12',
 				'leia' => 's10',
-				'ecreva' => 's11',
+				'escreva' => 's11',
 				'se' => 's14',
 				'fim' => 's9',
-				'A' => '19',
+				'A' => '20',
 				'ES' => '6',
 				'CMD' => '7',
 				'COND' => '8',
@@ -289,10 +284,10 @@ class SyntacticAnalyzer
 			'8' => {
 				'id' => 's12',
 				'leia' => 's10',
-				'ecreva' => 's11',
+				'escreva' => 's11',
 				'se' => 's14',
 				'fim' => 's9',
-				'A' => '19',
+				'A' => '21',
 				'ES' => '6',
 				'CMD' => '7',
 				'COND' => '8',
@@ -306,12 +301,12 @@ class SyntacticAnalyzer
 			},
 			'11' => {
 				'id' => 's26',
-				'literal' => 's24',
+				'lit' => 's24',
 				'num' => 's25',
 				'ARG' => '23'
 			},
 			'12' => {
-				'rcb' => 's27'
+				'RCB' => 's27'
 			},
 			'13' => {
 				'id' => 's12',
@@ -394,7 +389,7 @@ class SyntacticAnalyzer
 				'escreva' => 's11',
 				'se' => 's14',
 				'fimse' => 's32',
-				'A' => '29',
+				'ES' => '29',
 				'CMD' => '30',
 				'COND' => '31',
 				'CABEÇALHO' => '13',
@@ -406,7 +401,7 @@ class SyntacticAnalyzer
 				'escreva' => 's11',
 				'se' => 's14',
 				'fimse' => 's32',
-				'A' => '29',
+				'ES' => '29',
 				'CMD' => '30',
 				'COND' => '31',
 				'CABEÇALHO' => '13',
@@ -418,7 +413,7 @@ class SyntacticAnalyzer
 				'escreva' => 's11',
 				'se' => 's14',
 				'fimse' => 's32',
-				'A' => '29',
+				'ES' => '29',
 				'CMD' => '30',
 				'COND' => '31',
 				'CABEÇALHO' => '13',
@@ -485,19 +480,19 @@ class SyntacticAnalyzer
 			},
 			'43' => {
 				'PT_V' => 'r18',
-				'opm' => 's53'
+				'OPM' => 's53'
 			},
 			'44' => {
 				'PT_V' => 'r19',
-				'opm' => 'r19',
+				'OPM' => 'r19',
 				'FC_P' => 'r19',
-				'opr' => 'r19'
+				'OPR' => 'r19'
 			},
 			'45' => {
 				'PT_V' => 'r20',
-				'opm' => 'r20',
+				'OPM' => 'r20',
 				'FC_P' => 'r20',
-				'opr' => 'r20'
+				'OPR' => 'r20'
 			},
 			'46' => {
 				'id' => 'r25',
@@ -527,7 +522,7 @@ class SyntacticAnalyzer
 				'FC_P' => 's54'
 			},
 			'50' => {
-				'opr' => 's55'
+				'OPR' => 's55'
 			},
 			'51' => {
 				'varfim' => 'r5',
@@ -562,7 +557,7 @@ class SyntacticAnalyzer
 				'leia' => 'r23',
 				'escreva' => 'r23',
 				'se' => 'r23',
-				'fim' => 'r23'
+				'fimse' => 'r23'
 			},
 			'58' => {
 				'FC_P' => 'r24'
@@ -614,7 +609,11 @@ class SyntacticAnalyzer
 			},
 			'LD' => {
 				'first' => ['id', 'num'],
-				'follow' => ['opm', 'PT_V', 'opr', 'FC_P']
+				'follow' => ['PT_V']
+			},
+			'OPRD' => {
+				'first' => ['id', 'num'],
+				'follow' => ['OPM', 'PT_V', 'OPR', 'FC_P']
 			},
 			'COND' => {
 				'first' => ['se'],
@@ -629,7 +628,7 @@ class SyntacticAnalyzer
 				'follow' => ['FC_P']
 			},
 			'CORPO' => {
-				'first' => ['leia', 'escreva', 'id', 'fimse', 'sim'],
+				'first' => ['leia', 'escreva', 'id', 'fimse', 'se'],
 				'follow' => ['fim', 'leia', 'escreva', 'id', 'se', 'fimse']
 			}
 		}
