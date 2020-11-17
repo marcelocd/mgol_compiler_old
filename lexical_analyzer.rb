@@ -75,7 +75,9 @@ class LexicalAnalyzer
 			@token_array << {
 				'token'  => 'EOF',
 				'type'   => '-',
-				'lexeme' => ''
+				'lexeme' => '',
+				'line'   => @current_line,
+				'column' => @current_column
 			}
 			
 			return
@@ -91,7 +93,9 @@ class LexicalAnalyzer
 			token = get_token_from_state(@current_state)
 
 			if(token['token'] != 'Comentário')
-				@token_array << token
+				@token_array          << token
+				@token_array.last['line']   = @current_line
+				@token_array.last['column'] = @current_column - token['lexeme'].length
 			end
 
 			# Adiciona os identificadores à tabela de símbolos.
@@ -191,6 +195,10 @@ class LexicalAnalyzer
 		return @current_column
 	end
 
+	def get_errors
+		return @errors
+	end
+
 	def get_transition_table
 		return @transition_table
 	end
@@ -265,7 +273,9 @@ class LexicalAnalyzer
 			@token_array << {
 				'token'  => 'Erro',
 				'lexeme' => @buffer,
-				'type'   => '-'
+				'type'   => '-',
+				'line'   => @current_line,
+				'column' => @current_column
 			}
 		end
 
@@ -557,7 +567,7 @@ class LexicalAnalyzer
 			# @current_column -= 1
 			description = "unfinished lexeme '#{@buffer}'."
 
-			return "ERROR (line #{@current_line}, column #{@current_column - 1}): #{description}"
+			return "Lexycal Error (line #{@current_line}, column #{@current_column - 1}): #{description}"
 		end
 
 		if(@current_state == INITIAL_STATE)
@@ -570,7 +580,7 @@ class LexicalAnalyzer
 			description = "unexpected '#{current_character}' instead of digit or sign (+,-)."
 		end
 
-		return "ERROR (line #{@current_line}, column #{@current_column}): #{description}"
+		return "Lexycal Error (line #{@current_line}, column #{@current_column}): #{description}"
 	end
 
 	# ---------------------------------------------

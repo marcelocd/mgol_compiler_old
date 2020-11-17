@@ -31,14 +31,11 @@ def main
 
 	lex.analyse()
 
-	lex.print_errors()
-
-	# lex.print_token_array()
-	# lex.print_symbol_table()
-
-	sa = SyntacticAnalyzer.new(lex.get_token_array())
+	sa = SyntacticAnalyzer.new(lex.get_token_array(), lex.get_errors())
 
 	sa.analyse()
+
+	sa.print_errors()
 end
 
 main()

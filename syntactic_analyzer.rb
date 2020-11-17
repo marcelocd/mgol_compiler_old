@@ -1,38 +1,34 @@
 # Authors: Frank Douglas & Marcelo Dias
-# Last modified: 11/09/2020
+# Last modified: 11/17/2020
 
 require "byebug"
 
 class SyntacticAnalyzer
-	attr_accessor :current_state, :previous_state, :current_index, :syntactic_table, :first_follow_table, :errors
+	attr_accessor :current_index, :syntactic_table, :first_follow_table, :errors
 
-	@current_state
-	@previous_state
 	@current_index
 	@syntactic_table
 	@first_follow_table
 	@errors
 
-	INITIAL_STATE = 's0'
+	INITIAL_STATE = '0'
 
 	# FUNÇÕES PÚBLICAS ----------------------------
 	# CONSTRUTOR ----------------------------------
-	def initialize token_array
-		@current_state      = INITIAL_STATE
-		@previous_state     = 'nil'
+	def initialize token_array, errors
 		@token_array        = token_array << {'token' => '$'}
 		@current_index      = 0
 		@ip                 = nil
 		@grammar            = initialize_grammar()
 		@syntactic_table    = initialize_syntactic_table()
 		@first_follow_table = initialize_first_follow_table()
-		@errors             = []
+		@errors             = errors
 	end
 
 	# ---------------------------------------------
 
 	def analyse
-		stack = ['0']
+		stack = [INITIAL_STATE]
 
 		ip = @token_array[@current_index]
 
@@ -57,7 +53,6 @@ class SyntacticAnalyzer
 
 					ip = @token_array[@current_index]
 				elsif(action(s, a).match(/r/))
-
 					goto_number = action(s, a).match(/\d+/)[0]
 					
 					alpha = @grammar[goto_number]['left']
@@ -68,7 +63,7 @@ class SyntacticAnalyzer
 					
 					for i in 1..(2 * beta_length)
 						stack.pop
-						end
+					end
 
 					sl = stack.last
 
@@ -78,22 +73,24 @@ class SyntacticAnalyzer
 					
 					puts "#{alpha} => #{beta}"
 				elsif(action(s, a) == 'acc')
-					return
+					break
 				else
 					treat_error()
 				end
 			else
-				if a == 'EOF'
+				if(a == 'EOF')
 					@current_index += 1
 
 					ip = @token_array[@current_index]
 
 					next
 				end
+				
+				if(@token_array[@current_index] == nil)
+					return 
+				end
 
-				error()
-
-				return
+				treat_error()
 			end
 		end
 	end
@@ -648,11 +645,13 @@ class SyntacticAnalyzer
 	end
 
 	# FUNÇÕES DE ERRO -----------------------------
-	def error
-		puts 'Syntactic error!'
-	end
-
 	def treat_error
+		if(@token_array[@current_index]['lexeme'] != '')
+			error = "Syntactic Error (line #{@token_array[@current_index]['line']}, column #{@token_array[@current_index]['column']}): unexpected '#{@token_array[@current_index]['lexeme']}'."
+			
+			@errors << error
+		end
+
 		token_array_length = @token_array.count
 
 		@current_index += 1
@@ -663,12 +662,20 @@ class SyntacticAnalyzer
 			if @token_array[@current_index]['token'] == 'PT_V'
 				@current_index += 1
 
-				error()
-
 				return
 			end
 
 			@current_index += 1
+		end
+	end
+
+	def print_errors
+		errors_length = @errors.length()
+
+		if(errors_length > 0)
+			for i in 0..(errors_length - 1)
+				puts @errors[i]
+			end
 		end
 	end
 
