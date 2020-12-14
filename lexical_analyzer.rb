@@ -4,21 +4,11 @@
 require "byebug"
 
 class LexicalAnalyzer
-	attr_accessor :source_code, :current_state, :previous_state, :current_index, :current_character, :buffer, :current_line, :current_column, :transition_table, :final_states_table, :symbol_table, :take_token_table, :token_array, :errors
-
-	@source_code
-	@current_state
-	@previous_state
-	@current_index
-	@buffer
-	@current_line
-	@current_column
-	@transition_table
-	@final_states_table
-	@symbol_table
-	@token_array
-	@state_token_table
-	@errors
+	attr_accessor :source_code, :current_state, :previous_state,
+								:current_index, :current_character, :buffer,
+								:current_line, :current_column, :transition_table,
+								:final_states_table, :symbol_table, :take_token_table,
+								:token_array, :errors
 
 	INITIAL_STATE = 's0'
 	ID_STATE      = 's9'
@@ -50,11 +40,11 @@ class LexicalAnalyzer
 	# ---------------------------------------------
 	# FUNÇÕES PRINCIPAIS --------------------------
 	def analyse
-		# print_info()
+		# print_info
 
 		loop do
 			process_current_character()
-			# print_info()
+			# print_info
 
 			if(@current_state == EOF_STATE)
 				break
@@ -63,9 +53,9 @@ class LexicalAnalyzer
 	end
 
 	def process_current_character
-		increment_line_number_if_needed()
+		increment_line_number_if_needed
 
-		key = define_current_key()
+		key = define_current_key
 
 		next_state = @transition_table[@current_state][key]
 
@@ -85,7 +75,7 @@ class LexicalAnalyzer
 
 		if(a_token_was_found(next_state))
 			if(look_for_error(next_state))
-				reset_dfa()
+				reset_dfa
 
 				return
 			end
@@ -110,7 +100,7 @@ class LexicalAnalyzer
 			end
 			# -----------------------------------------
 
-			reset_dfa()
+			reset_dfa
 
 			return
 		end
@@ -168,57 +158,6 @@ class LexicalAnalyzer
 		aux_string += "\nCurrent Index: #{@current_index}"
 		aux_string += "\n"
 	end
-
-	# ---------------------------------------------
-	# GETTERS -------------------------------------
-	def get_current_state
-		return @current_state
-	end
-
-	def get_current_index
-		return @current_index
-	end
-
-	def get_current_character
-		return @current_character
-	end
-
-	def get_buffer
-		return @buffer
-	end
-
-	def get_current_line
-		return @current_line
-	end
-
-	def get_current_column
-		return @current_column
-	end
-
-	def get_errors
-		return @errors
-	end
-
-	def get_transition_table
-		return @transition_table
-	end
-
-	def get_final_states_table
-		return @final_states_table
-	end
-
-	def get_symbol_table
-		return @symbol_table
-	end
-
-	def get_state_token_table
-		return @transition_table
-	end
-
-	def get_token_array
-		return @token_array
-	end
-
 	# ---------------------------------------------
 
 	# ---------------------------------------------
@@ -242,11 +181,11 @@ class LexicalAnalyzer
 		if((next_state == EOF_STATE) && (!is_final_state(@current_state)))
 			an_error_was_found = true
 
-			@errors << get_error_message()
+			@errors << error_message()
 		elsif(next_state == nil && !is_final_state(@current_state))
 			an_error_was_found = true
 
-			@errors << get_error_message()
+			@errors << error_message()
 		# -------------------------------------------
 		elsif(next_state == nil && is_final_state(@current_state))
 			# Caso alguma letra diferente de 'e' e 'E' seja processada
@@ -255,7 +194,7 @@ class LexicalAnalyzer
 				if(@current_character.match(/[a-df-zA-DF-Z]/))
 					an_error_was_found = true
 
-					@errors << get_error_message()
+					@errors << error_message()
 				end
 			# -----------------------------------------
 			# Caso qualquer letra seja processada a partir
@@ -264,7 +203,7 @@ class LexicalAnalyzer
 				if(@current_character.match(/[a-zA-Z]/))
 					an_error_was_found = true
 
-					@errors << get_error_message()
+					@errors << error_message()
 				end
 			end
 		end
@@ -273,7 +212,7 @@ class LexicalAnalyzer
 			@token_array << {
 				'token'  => 'Erro',
 				'lexeme' => @buffer,
-				'type'   => '-',
+				'type'   => 'Erro',
 				'line'   => @current_line,
 				'column' => @current_column
 			}
@@ -359,7 +298,16 @@ class LexicalAnalyzer
 	def reset_dfa
 		@current_state  = INITIAL_STATE
 		@previous_state = 'nil'
-		@buffer         = ''
+
+		# INVALID CHARACTER CASE (@, ç, ...) ------------------
+		if @buffer.length == 0
+			@current_index    += 1
+			@current_column   += 1
+			@current_character = @source_code[@current_index]
+		end
+		# -----------------------------------------------------
+
+		@buffer = ''
 	end
 
 	def update_lex next_state
@@ -421,34 +369,34 @@ class LexicalAnalyzer
 		# A tabela retornada por essa função indica
 		# qual token é reconhecido por cada estado final
 
-		return {
-			's1' =>  {'token' => 'num',        'type' => 'int'},
-			's3' =>  {'token' => 'num',        'type' => 'real'},
-			's6' =>  {'token' => 'num',        'type' => '-'},
-			's8' =>  {'token' => 'lit',        'type' => '-'},
-			's9' =>  {'token' => 'id',         'type' => '-'},
-			's11' => {'token' => 'Comentário', 'type' => '-'},
-			's12' => {'token' => 'EOF',        'type' => '-'},
-			's13' => {'token' => 'OPR',        'type' => '-'},
-			's14' => {'token' => 'OPR',        'type' => '-'},
-			's15' => {'token' => 'OPR',        'type' => '-'},
-			's16' => {'token' => 'OPR',        'type' => '-'},
-			's17' => {'token' => 'OPR',        'type' => '-'},
-			's18' => {'token' => 'OPR',        'type' => '-'},
-			's19' => {'token' => 'OPM',        'type' => '-'},
-			's20' => {'token' => 'OPM',        'type' => '-'},
-			's21' => {'token' => 'OPM',        'type' => '-'},
-			's22' => {'token' => 'OPM',        'type' => '-'},
-			's23' => {'token' => 'AB_P',       'type' => '-'},
-			's24' => {'token' => 'FC_P',       'type' => '-'},
-			's25' => {'token' => 'PT_V',       'type' => '-'},
-			's26' => {'token' => 'Erro',       'type' => '-'},
-			's27' => {'token' => 'RCB',        'type' => '-'}
+		{
+			's1'  => {'token' => 'num', 'type' => 'int'},
+			's3'  => {'token' => 'num', 'type' => 'real'},
+			's6'  => {'token' => 'num'},
+			's8'  => {'token' => 'lit'},
+			's9'  => {'token' => 'id'},
+			's11' => {'token' => 'Comentário'},
+			's12' => {'token' => 'EOF', 'type' => 'EOF'},
+			's13' => {'token' => 'OPR', 'type' => '>'},
+			's14' => {'token' => 'OPR', 'type' => '>='},
+			's15' => {'token' => 'OPR', 'type' => '='},
+			's16' => {'token' => 'OPR', 'type' => '<'},
+			's17' => {'token' => 'OPR', 'type' => '<>'},
+			's18' => {'token' => 'OPR', 'type' => '<='},
+			's19' => {'token' => 'OPM', 'type' => '+'},
+			's20' => {'token' => 'OPM', 'type' => '-'},
+			's21' => {'token' => 'OPM', 'type' => '*'},
+			's22' => {'token' => 'OPM', 'type' => '/'},
+			's23' => {'token' => 'AB_P', 'type' => '('},
+			's24' => {'token' => 'FC_P', 'type' => ')'},
+			's25' => {'token' => 'PT_V', 'type' => ';'},
+			's26' => {'token' => 'Erro', 'type' => 'Erro'},
+			's27' => {'token' => 'RCB', 'type' => '<-'}
 		}
 	end
 
 	def initialize_symbol_table
-		return {
+		{
 			'inicio'    => {'token' => 'inicio'},
 			'varinicio' => {'token' => 'varinicio'},
 			'varfim'    => {'token' => 'varfim'},
@@ -560,18 +508,17 @@ class LexicalAnalyzer
 
 	# ---------------------------------------------
 	# FUNÇÕES DE ERRO -----------------------------
-	def get_error_message
+	def error_message
 		description = ''
 
 		if(@current_character == nil)
-			# @current_column -= 1
 			description = "unfinished lexeme '#{@buffer}'."
 
 			return "Lexycal Error (line #{@current_line}, column #{@current_column - 1}): #{description}"
 		end
 
 		if(@current_state == INITIAL_STATE)
-			description = "unexpected '#{current_character}' starting the lexeme."
+			description = "unexpected '#{current_character}' starting a lexeme."
 		elsif(@current_state == 's2' or @current_state == 's5' or @current_state == 's6')
 			description = "unexpected '#{current_character}' instead of digit."
 		elsif(@current_state == 's1' || @current_state == 's3')

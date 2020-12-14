@@ -1,15 +1,10 @@
 # Authors: Frank Douglas & Marcelo Dias
-# Last modified: 11/17/2020
+# Last modified: 12/13/2020
 
 require "byebug"
 
 class SyntacticAnalyzer
 	attr_accessor :current_index, :syntactic_table, :first_follow_table, :errors
-
-	@current_index
-	@syntactic_table
-	@first_follow_table
-	@errors
 
 	INITIAL_STATE = '0'
 

@@ -4,7 +4,7 @@ inicio
  B int;
  D int;
  C real;
- varfim;
+ varfim;@
  escreva "Digite B";
  leia B;
  escreva "Digite A:";

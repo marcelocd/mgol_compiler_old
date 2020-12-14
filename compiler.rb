@@ -1,5 +1,5 @@
 # Authors: Frank Douglas & Marcelo Dias
-# Last modified: 10/05/2020
+# Last modified: 12/13/2020
 
 # REQUIREMENTS -----------------------------------
 load    "lexical_analyzer.rb"
@@ -29,13 +29,13 @@ end
 def main
 	lex = LexicalAnalyzer.new(source_code_path)
 
-	lex.analyse()
+	lex.analyse
 
-	sa = SyntacticAnalyzer.new(lex.get_token_array(), lex.get_errors())
+	sa = SyntacticAnalyzer.new(lex.token_array, lex.errors)
 
-	sa.analyse()
+	sa.analyse
 
-	sa.print_errors()
+	sa.print_errors
 end
 
 main()
