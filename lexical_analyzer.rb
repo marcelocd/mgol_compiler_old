@@ -64,7 +64,7 @@ class LexicalAnalyzer
 
 			@token_array << {
 				'token'  => 'EOF',
-				'type'   => '-',
+				'type'   => 'EOF',
 				'lexeme' => '',
 				'line'   => @current_line,
 				'column' => @current_column
@@ -270,7 +270,6 @@ class LexicalAnalyzer
 		# o token retornado é o que consta na tabela.
 		if(@symbol_table[@buffer])
 			aux['token'] = @symbol_table[@buffer]['token']
-			aux['type']  = '-'
 
 		# Caso contrário, o próprio estado do
 		# DFA determina o token reconhecido
@@ -372,8 +371,8 @@ class LexicalAnalyzer
 		{
 			's1'  => {'token' => 'num', 'type' => 'int'},
 			's3'  => {'token' => 'num', 'type' => 'real'},
-			's6'  => {'token' => 'num'},
-			's8'  => {'token' => 'lit'},
+			's6'  => {'token' => 'num', 'type' => 'num'},
+			's8'  => {'token' => 'lit', 'type' => 'lit'},
 			's9'  => {'token' => 'id'},
 			's11' => {'token' => 'Comentário'},
 			's12' => {'token' => 'EOF', 'type' => 'EOF'},

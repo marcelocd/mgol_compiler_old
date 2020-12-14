@@ -1,23 +1,25 @@
 # Authors: Frank Douglas & Marcelo Dias
-# Last modified: 12/13/2020
+# Last modified: 12/14/2020
 
 require "byebug"
 
 class SyntacticAnalyzer
-	attr_accessor :current_index, :syntactic_table, :first_follow_table, :errors
+	attr_accessor :current_index, :token_array, :syntactic_table,
+								:first_follow_table, :semantic_rules, :errors
 
 	INITIAL_STATE = '0'
 
 	# FUNÇÕES PÚBLICAS ----------------------------
 	# CONSTRUTOR ----------------------------------
-	def initialize token_array, errors
-		@token_array        = token_array << {'token' => '$'}
+	def initialize(args)
+		@token_array        = args[:token_array] << {'token' => '$'}
 		@current_index      = 0
 		@ip                 = nil
-		@grammar            = initialize_grammar()
-		@syntactic_table    = initialize_syntactic_table()
-		@first_follow_table = initialize_first_follow_table()
-		@errors             = errors
+		@grammar            = initialize_grammar
+		@syntactic_table    = initialize_syntactic_table
+		@first_follow_table = initialize_first_follow_table
+		@semantic_rules     = []
+		@errors             = args[:errors]
 	end
 
 	# ---------------------------------------------
@@ -66,7 +68,8 @@ class SyntacticAnalyzer
 					
 					stack.push("#{goto(sl, alpha)}")
 					
-					puts "#{alpha} => #{beta}"
+					@semantic_rules << "#{alpha} => #{beta}"
+					puts @semantic_rules.last
 				elsif(action(s, a) == 'acc')
 					break
 				else
