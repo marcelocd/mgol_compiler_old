@@ -78,8 +78,12 @@ class SemanticAnalyzer
 			else
 				errors << "Semantic Error: variable not declared."
 			end
-		# 11 -----------------------------------
-		elsif rule == ''
+		# 18 -----------------------------------
+		elsif rule == 'LD => OPRD opm OPRD'
+			if @OPRD1[:type] == @OPRD2[:type] && @OPRD1[:type] != 'lit'
+				
+			else
+			end
 		# 11 -----------------------------------
 		elsif rule == ''
 		# 11 -----------------------------------
