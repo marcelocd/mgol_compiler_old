@@ -35,10 +35,12 @@ def main
 																						 errors: lex.errors)
 	syntactic_analyzer.analyse
 
-	semantic_analyzer = SemanticAnalyzer.new(token_array: syntactic_analyzer.token_array,
-																					 semantic_rules: syntactic_analyzer.semantic_rules,
-																					 errors: syntactic_analyzer.errors)
-	semantic_analyzer.analyse
+	# syntactic_analyzer.print_token_array
+
+	# semantic_analyzer = SemanticAnalyzer.new(token_array: syntactic_analyzer.token_array,
+	# 																				 semantic_rules: syntactic_analyzer.semantic_rules,
+	# 																				 errors: syntactic_analyzer.errors)
+	# semantic_analyzer.analyse
 	# semantic.print_errors
 end
 

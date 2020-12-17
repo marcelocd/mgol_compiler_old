@@ -30,10 +30,6 @@ class SyntacticAnalyzer
 		ip = @token_array[@current_index]
 
 		loop do
-			# puts '---------'
-			# puts stack
-			# puts '---------'
-
 			s = stack.last
 			
 			a = ip['token']
