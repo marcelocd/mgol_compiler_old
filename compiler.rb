@@ -1,10 +1,7 @@
-# Authors: Frank Douglas & Marcelo Dias
-# Last modified: 12/13/2020
-
 # REQUIREMENTS -----------------------------------
 load "lexical_analyzer.rb"
 load "syntactic_analyzer.rb"
-load "semantic_analyzer.rb"
+# load "semantic_analyzer.rb"
 
 require "byebug"
 
@@ -29,11 +26,14 @@ end
 # TEST -------------------------------------------
 def main
 	lex = LexicalAnalyzer.new(source_code_path)
-	lex.analyse
 
-	syntactic_analyzer = SyntacticAnalyzer.new(token_array: lex.token_array,
+	# lex.analyse
+
+	syntactic_analyzer = SyntacticAnalyzer.new(lex: lex,
 																						 errors: lex.errors)
 	syntactic_analyzer.analyse
+
+	syntactic_analyzer.print_errors
 
 	# syntactic_analyzer.print_token_array
 

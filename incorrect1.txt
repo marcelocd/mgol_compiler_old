@@ -18,7 +18,7 @@ inicio
  fimse
  B<-B+1;
  B<-B+2;
- B<-B+3;
+ B<-B+3;ç
  D<-B;
  C<-5.0;
  escreva "\nB=\n";

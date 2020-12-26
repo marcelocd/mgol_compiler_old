@@ -1,10 +1,7 @@
-# Authors: Frank Douglas & Marcelo Dias
-# Last modified: 12/14/2020
-
 require "byebug"
 
 class SyntacticAnalyzer
-	attr_accessor :current_index, :token_array, :syntactic_table,
+	attr_accessor :lex, :current_index, :syntactic_table,
 								:first_follow_table, :semantic_rules, :errors
 
 	INITIAL_STATE = '0'
@@ -12,7 +9,7 @@ class SyntacticAnalyzer
 	# FUNÇÕES PÚBLICAS ----------------------------
 	# CONSTRUTOR ----------------------------------
 	def initialize(args)
-		@token_array        = args[:token_array] << {'token' => '$'}
+		@lex                = args[:lex]
 		@current_index      = 0
 		@ip                 = nil
 		@grammar            = initialize_grammar
@@ -27,30 +24,29 @@ class SyntacticAnalyzer
 	def analyse
 		stack = [INITIAL_STATE]
 
-		ip = @token_array[@current_index]
+		@ip = @lex.next_token
 
 		loop do
 			s = stack.last
 			
-			a = ip['token']
+			a = @ip['token']
 
 			if(action(s, a) != nil)
 				if(action(s, a).match(/s/))
 					stack.push(a)
 					
 					sl = action(s, a).match(/\d+/)[0]
-					
-					stack.push(sl)
-					
-					@current_index += 1
 
-					ip = @token_array[@current_index]
+					stack.push(sl)
+
+					#AQUI
+					# pilha_auxiliar << ip
+					@ip = @lex.next_token
 				elsif(action(s, a).match(/r/))
 					goto_number = action(s, a).match(/\d+/)[0]
 					
 					alpha = @grammar[goto_number]['left']
-					
-					beta  = @grammar[goto_number]['right']
+					beta = @grammar[goto_number]['right']
 					
 					beta_length = count_symbols(beta)
 					
@@ -61,11 +57,27 @@ class SyntacticAnalyzer
 					sl = stack.last
 
 					stack.push(alpha)
-					
 					stack.push("#{goto(sl, alpha)}")
+
+					# AQUI, SEU BURRO
+					# validation = []
+
+					# for i in 0..(beta_length)
+					# 	aux = pilha_auxiliar.pop
+					# 	validation << aux
+					# end
+
+					# non_terminal = rodar_semantico
+					# (sempre retorna o alpha)
+					# para o semantico, passamos o indice da regra (obtido na tabela),
+					# o alfa, o validation, e se houve erro ou nao.
+					# Se houver erro,
+
+					# ---------------------------
 					
 					@semantic_rules << "#{alpha} => #{beta}"
 					puts @semantic_rules.last
+					return if @ip['token'] == 'EOF'
 				elsif(action(s, a) == 'acc')
 					break
 				else
@@ -73,14 +85,13 @@ class SyntacticAnalyzer
 				end
 			else
 				if(a == 'EOF')
-					@current_index += 1
-
-					ip = @token_array[@current_index]
-
+					@ip = @lex.next_token
 					next
 				end
-				
-				if(@token_array[@current_index] == nil)
+
+				if(@ip.nil?)
+				# if((@ip = @lex.get_next_token).nil?)
+					puts @ip
 					return 
 				end
 
@@ -640,27 +651,17 @@ class SyntacticAnalyzer
 
 	# FUNÇÕES DE ERRO -----------------------------
 	def treat_error
-		if(@token_array[@current_index]['lexeme'] != '')
-			error = "Syntactic Error (line #{@token_array[@current_index]['line']}, column #{@token_array[@current_index]['column']}): unexpected '#{@token_array[@current_index]['lexeme']}'."
+		if(@ip['lexeme'] != '')
+			error = "Syntactic Error (line #{@ip['line']}, column #{@ip['column']}): unexpected '#{@ip['lexeme']}'."
 			
 			@errors << error
 		end
 
-		token_array_length = @token_array.count
-
-		@current_index += 1
-
-		# Procura o índice do próximo delimitador (PT_V)
-		# faz com que o @current_index seja o índice que vem depois
-		for i in @current_index..(token_array_length - 1)
-			if @token_array[@current_index]['token'] == 'PT_V'
-				@current_index += 1
-
-				return
-			end
-
-			@current_index += 1
+		while @ip['token'] != 'PT_V' do
+			@ip = @lex.next_token
 		end
+
+		@ip = @lex.next_token
 	end
 
 	def print_errors

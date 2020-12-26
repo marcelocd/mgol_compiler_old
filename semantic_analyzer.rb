@@ -30,10 +30,20 @@ class SemanticAnalyzer
 	# ---------------------------------------------
 
 	def analyse rule
+		tmp = (lexeme = alfa, token = alfa, type, line, column)
+		resultado do lexico
+
+
+
 		# 5 ------------------------------------
 		if rule == 'LV => varfim PT_V'
 		# 6 ------------------------------------
 		elsif rule == 'D => id TIPO PT_V'
+			# id = validation.pop
+			# TIPO = validation.pop
+			# PT_V = validation.pop
+
+			symbol_table_reference.ids[id['lexeme']]['type'] = TIPO['type']
 			@id[:type] = @TIPO[:type]
 			@target_code += "#{@TIPO[:lexeme]} #{@id[:lexeme]} ;"
 		# 7 ------------------------------------
@@ -87,6 +97,10 @@ class SemanticAnalyzer
 			end
 		# 18 -----------------------------------
 		elsif rule == 'LD => OPRD opm OPRD'
+			# opr1 = validation.pop
+			# opm = validation.pop
+			# opr2 = validation.pop
+
 			if oprd_types_are_equivalent_and_not_lit
 				
 			else

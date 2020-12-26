@@ -1,6 +1,3 @@
-# Authors: Frank Douglas & Marcelo Dias
-# Last modified: 11/09/2020
-
 require "byebug"
 
 class LexicalAnalyzer
@@ -33,90 +30,40 @@ class LexicalAnalyzer
 		@final_states_table = initialize_final_states()
 		@symbol_table       = initialize_symbol_table()
 		@state_token_table  = initialize_state_token_table()
-		@token_array        = []
 		@errors             = []
+		@end_of_file_has_been_reached = false
 	end
 
 	# ---------------------------------------------
 	# FUNÇÕES PRINCIPAIS --------------------------
-	def analyse
-		# print_info
+	def next_token
+		token = nil
 
-		loop do
-			process_current_character()
-			# print_info
-
-			if(@current_state == EOF_STATE)
-				break
-			end
+		while token.nil? do
+			token = process_current_character
 		end
+
+		token = {"token"=>"$"} if @end_of_file_has_been_reached
+
+		@end_of_file_has_been_reached = true if @current_state == EOF_STATE
+
+		return token
 	end
 
-	def process_current_character
-		increment_line_number_if_needed
+	def analyse
+		token = nil
+		while(token = next_token) do
+			puts token
 
-		key = define_current_key
-
-		next_state = @transition_table[@current_state][key]
-
-		if((@current_state == INITIAL_STATE) && (@current_character == nil))
-			@current_state = EOF_STATE
-
-			@token_array << {
-				'token'  => 'EOF',
-				'type'   => 'EOF',
-				'lexeme' => '',
-				'line'   => @current_line,
-				'column' => @current_column
-			}
-			
-			return
+			break if token['token'] == '$'
 		end
-
-		if(a_token_was_found(next_state))
-			if(look_for_error(next_state))
-				reset_dfa
-
-				return
-			end
-
-			token = get_token_from_state(@current_state)
-
-			if(token['token'] != 'Comentário')
-				@token_array          << token
-				@token_array.last['line']   = @current_line
-				@token_array.last['column'] = @current_column - token['lexeme'].length
-			end
-
-			# Adiciona os identificadores à tabela de símbolos.
-			if(@current_state == ID_STATE)
-				if(@symbol_table[@buffer] == nil)
-					@symbol_table[@buffer] = {'token' => token['token']}
-				end
-
-				# puts "#{@buffer}: #{@symbol_table[@buffer]['token']}"
-			# else
-				# puts "#{@buffer}: #{token}"
-			end
-			# -----------------------------------------
-
-			reset_dfa
-
-			return
-		end
-
-		update_lex(next_state)
 	end
 
 	# ---------------------------------------------
 	# FUNÇÕES DE IMPRESSÃO ------------------------
 	def print_errors
-		errors_length = @errors.length()
-
-		if(errors_length > 0)
-			for i in 0..(errors_length - 1)
-				puts @errors[i]
-			end
+		@errors.each do |error|
+			puts error
 		end
 	end
 
@@ -165,6 +112,59 @@ class LexicalAnalyzer
 	private
 
 	# FUNÇÕES DE AUXÍLIO --------------------------
+	def process_current_character
+		token = nil
+
+		increment_line_number_if_needed
+
+		key = define_current_key
+
+		next_state = @transition_table[@current_state][key]
+
+		if((@current_state == INITIAL_STATE) && (@current_character == nil))
+			@current_state = EOF_STATE
+
+			token = {
+				'token'  => 'EOF',
+				'type'   => 'EOF',
+				'lexeme' => '',
+				'line'   => @current_line,
+				'column' => @current_column
+			}
+
+			return token
+		end
+
+		if(a_token_was_found(next_state))
+			if(token = look_for_error(next_state))
+				reset_dfa
+
+				return token
+			end
+
+			token = get_token_from_state(@current_state)
+
+			if(token['token'] != 'Comentário')
+				token['line']   = @current_line
+				token['column'] = @current_column - token['lexeme'].length
+			end
+
+			# Adiciona os identificadores à tabela de símbolos.
+			if(@current_state == ID_STATE)
+				@symbol_table[@buffer] = {'token' => token['token']} if @symbol_table[@buffer].nil?
+			end
+			# -----------------------------------------
+
+			reset_dfa
+
+			return token
+		end
+
+		update_lex(next_state)
+
+		token
+	end
+
 	def a_token_was_found next_state
 		if((next_state == nil) || (next_state == ERROR_STATE) || (next_state == EOF_STATE))
 			return true
@@ -174,6 +174,8 @@ class LexicalAnalyzer
 	end
 
 	def look_for_error next_state
+		token = nil
+
 		an_error_was_found = false
 
 		# Caso não tenha transição com o caracter processado
@@ -209,16 +211,17 @@ class LexicalAnalyzer
 		end
 
 		if(an_error_was_found)
-			@token_array << {
+			token = {
 				'token'  => 'Erro',
 				'lexeme' => @buffer,
 				'type'   => 'Erro',
 				'line'   => @current_line,
 				'column' => @current_column
 			}
+			# @token_array << token
 		end
 
-		return an_error_was_found
+		return token
 	end
 
 	def define_current_key
@@ -317,7 +320,10 @@ class LexicalAnalyzer
 		cc = @current_character
 
 		if(@current_character != nil)
-			if(!((@current_state == INITIAL_STATE) && ((cc == "\s") || (cc == "\n") || (cc == "\t"))))
+			if(!((@current_state == INITIAL_STATE) && 
+				 ((cc == "\s") ||
+				  (cc == "\n") ||
+				  (cc == "\t"))))
 				@buffer += @current_character
 			end
 		end
